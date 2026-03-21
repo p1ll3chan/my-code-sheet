@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { insertUserSchema, insertSheetSchema, insertProblemSchema, sheets, problems } from './schema';
+import { insertUserSchema, insertSheetSchema, insertProblemSchema, sheets, problems, contests } from './schema';
 
 export const errorSchemas = {
   validation: z.object({
@@ -142,10 +142,70 @@ export const api = {
           totalProblems: z.number(),
           totalSolved: z.number(),
           solvedToday: z.number(),
+          streak: z.number(),
           progress: z.array(z.object({ date: z.string(), count: z.number() })),
         }),
       },
     },
+  },
+  contests: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/contests',
+      responses: {
+        200: z.array(z.custom<typeof contests.$inferSelect>()),
+      },
+    },
+    get: {
+      method: 'GET' as const,
+      path: '/api/contests/:id',
+      responses: {
+        200: z.any(),
+        404: errorSchemas.notFound,
+      },
+    },
+    create: {
+      method: 'POST' as const,
+      path: '/api/contests',
+      input: z.any(),
+      responses: {
+        201: z.custom<typeof contests.$inferSelect>(),
+        500: errorSchemas.internal,
+      },
+    },
+    join: {
+      method: 'POST' as const,
+      path: '/api/contests/:id/join',
+      responses: {
+        200: z.any(),
+        500: errorSchemas.internal,
+      }
+    },
+    submit: {
+      method: 'POST' as const,
+      path: '/api/contests/:id/problems/:problemId/submit',
+      input: z.object({ status: z.string() }),
+      responses: {
+        200: z.any(),
+        500: errorSchemas.internal,
+      }
+    },
+    blitzQueue: {
+      method: 'POST' as const,
+      path: '/api/contests/blitz/queue',
+      responses: {
+        200: z.custom<typeof contests.$inferSelect>(),
+        500: errorSchemas.internal,
+      }
+    },
+    leaderboard: {
+      method: 'GET' as const,
+      path: '/api/contests/:id/leaderboard',
+      responses: {
+        200: z.array(z.any()),
+        500: errorSchemas.internal,
+      }
+    }
   },
 };
 

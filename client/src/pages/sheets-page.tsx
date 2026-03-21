@@ -29,6 +29,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -37,6 +38,14 @@ import { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertSheetSchema, type InsertSheet } from "@shared/schema";
+import { z } from "zod";
+
+const createSheetFormSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  description: z.string().optional(),
+  tags: z.string().optional(),
+  difficulty: z.string().optional(),
+});
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -91,7 +100,19 @@ export default function SheetsPage() {
                   <CardTitle className="line-clamp-1 group-hover:text-primary transition-colors">
                     {sheet.title}
                   </CardTitle>
-                  <CardDescription className="line-clamp-2 min-h-[40px]">
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {sheet.difficulty && (
+                      <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5">
+                        {sheet.difficulty}
+                      </Badge>
+                    )}
+                    {sheet.tags?.map((tag: string, i: number) => (
+                      <Badge key={i} variant="outline" className="text-[10px] px-1.5 py-0 h-5">
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                  <CardDescription className="line-clamp-2 min-h-[40px] mt-2">
                     {sheet.description || "No description provided."}
                   </CardDescription>
                 </CardHeader>
@@ -146,12 +167,16 @@ function CreateSheetDialog() {
   const [open, setOpen] = useState(false);
   const createMutation = useCreateSheet();
   
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<InsertSheet>({
-    resolver: zodResolver(insertSheetSchema),
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<z.infer<typeof createSheetFormSchema>>({
+    resolver: zodResolver(createSheetFormSchema),
   });
 
-  const onSubmit = (data: InsertSheet) => {
-    createMutation.mutate(data, {
+  const onSubmit = (data: any) => {
+    const formattedData = {
+      ...data,
+      tags: typeof data.tags === "string" ? data.tags.split(",").map((t: string) => t.trim()).filter(Boolean) : [],
+    };
+    createMutation.mutate(formattedData, {
       onSuccess: () => {
         setOpen(false);
         reset();
@@ -190,6 +215,22 @@ function CreateSheetDialog() {
               placeholder="What topics does this sheet cover?" 
               className="resize-none"
               {...register("description")} 
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="tags">Tags (Comma separated)</Label>
+            <Input 
+              id="tags" 
+              placeholder="e.g., DP, Recursion, Trees" 
+              {...register("tags")} 
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="difficulty">Difficulty</Label>
+            <Input 
+              id="difficulty" 
+              placeholder="e.g., Easy, Medium, Hard" 
+              {...register("difficulty")} 
             />
           </div>
           <DialogFooter>

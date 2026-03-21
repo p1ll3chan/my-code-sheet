@@ -1,5 +1,6 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { insertUserSchema, type InsertUser } from "@shared/schema";
 import { useAuth } from "@/hooks/use-auth";
 import { Redirect } from "wouter";
@@ -118,18 +119,31 @@ export default function AuthPage() {
   );
 }
 
+const loginSchema = z.object({
+  username: z.string().min(1, "Username is required"),
+  password: z.string().min(1, "Password is required"),
+});
+
 function AuthForm({
   mode,
   onSubmit,
   isLoading,
 }: {
   mode: "login" | "register";
-  onSubmit: (data: InsertUser) => void;
+  onSubmit: (data: any) => void;
   isLoading: boolean;
 }) {
-  const form = useForm<InsertUser>({
-    resolver: zodResolver(insertUserSchema),
-    defaultValues: {
+  const isRegister = mode === "register";
+  const form = useForm<any>({
+    resolver: zodResolver(isRegister ? insertUserSchema : loginSchema),
+    defaultValues: isRegister ? {
+      username: "",
+      password: "",
+      name: "",
+      email: "",
+      role: "student",
+      collegeClub: "",
+    } : {
       username: "",
       password: "",
     },
@@ -138,6 +152,36 @@ function AuthForm({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        {isRegister && (
+          <>
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Full Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="John Doe" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input type="email" placeholder="john@example.com" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </>
+        )}
         <FormField
           control={form.control}
           name="username"
@@ -164,6 +208,42 @@ function AuthForm({
             </FormItem>
           )}
         />
+        {isRegister && (
+          <>
+            <FormField
+              control={form.control}
+              name="role"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Role</FormLabel>
+                  <FormControl>
+                    <select
+                      {...field}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      <option value="student">Student</option>
+                      <option value="mentor">Mentor</option>
+                    </select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="collegeClub"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>College / Club</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Tech University CP Club" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </>
+        )}
         <Button type="submit" className="w-full" disabled={isLoading}>
           {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           {mode === "login" ? "Sign In" : "Create Account"}

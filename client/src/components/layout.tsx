@@ -5,7 +5,8 @@ import {
   FileSpreadsheet,
   LogOut,
   Menu,
-  X
+  X,
+  Swords
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   const navItems = [
     { href: "/", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/contests", label: "Contests Arena", icon: Swords },
     { href: "/sheets", label: "Practice Sheets", icon: FileSpreadsheet },
   ];
 

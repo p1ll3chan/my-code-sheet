@@ -17,7 +17,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { CheckCircle2, ListTodo, Trophy } from "lucide-react";
+import { CheckCircle2, ListTodo, Trophy, Flame } from "lucide-react";
 
 export default function Dashboard() {
   const { data: stats, isLoading } = useDashboardStats();
@@ -41,7 +41,7 @@ export default function Dashboard() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-4">
           <StatCard
             title="Total Problems"
             value={stats?.totalProblems || 0}
@@ -59,7 +59,14 @@ export default function Dashboard() {
             title="Solved Today"
             value={stats?.solvedToday || 0}
             icon={CheckCircle2}
-            description="Keep the streak alive!"
+            description="Keep the momentum!"
+            highlight
+          />
+          <StatCard
+            title="Current Streak"
+            value={stats?.streak || 0}
+            icon={Flame}
+            description="Days in a row"
             highlight
           />
         </div>
