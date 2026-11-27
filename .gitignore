@@ -1,1 +1,16 @@
-node_modules
+node_modules/
+
+# Nested clone of this same repository (kept locally, never committed)
+my-code-sheet/
+
+# Personal planning document (kept locally)
+Prompt.pdf
+
+# gstack local state
+.gstack/
+
+# Secrets and local runtime state anywhere in the tree
+.env
+.env.*
+!.env.example
+.local*/
