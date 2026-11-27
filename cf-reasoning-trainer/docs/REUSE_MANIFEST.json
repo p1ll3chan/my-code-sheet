@@ -1,0 +1,86 @@
+[
+  {
+    "path": "LICENSE",
+    "sourceSha256": "752883AB517D4577D7E8D7B900D5043646096692E80FE06356CF62388CFB4BAC"
+  },
+  {
+    "path": "tailwind.config.ts",
+    "sourceSha256": "CD0B8A9858D444906C20B378C1C8CF32404A2F44570098B8AEEEB31869B949D3"
+  },
+  {
+    "path": "postcss.config.js",
+    "sourceSha256": "374F669F08B18E67D0A7264FA45B71228017E604FE7F6DB8A5C1BD5BA27E5C98"
+  },
+  {
+    "path": "client/src/main.tsx",
+    "sourceSha256": "5DF52F8FA0B617B6FF92334ADC5551E01C4BF771C5A27C6ABE58AD162C347B80"
+  },
+  {
+    "path": "client/src/index.css",
+    "sourceSha256": "3B283A6F868ABC6689025E328A2CE2DA34F595EEB14D9A84EBABB63135780CBB"
+  },
+  {
+    "path": "client/src/lib/utils.ts",
+    "sourceSha256": "74A147991A119F1C4CDC25A4D9B22713632FA32EB136E55AB6939B006D71B9D6"
+  },
+  {
+    "path": "client/src/hooks/use-toast.ts",
+    "sourceSha256": "52580E80B7D8E7DFC0EEE27F3BC8DFA209E32FE8DC96B8E3E79ED61666348DD7"
+  },
+  {
+    "path": "client/src/pages/auth-page.tsx",
+    "sourceSha256": "3BADBCC1476942FCEA813144E6D8BD655DD22EFB0DF266B4CECFE2DA67DAFD24"
+  },
+  {
+    "path": "client/src/pages/not-found.tsx",
+    "sourceSha256": "D6CE1DABFF2CB0630606C8502200A8BB531B7AEBB7C864D8863EF896DF350DAC"
+  },
+  {
+    "path": "client/src/components/layout.tsx",
+    "sourceSha256": "7AC4168C31665B755E6D82B7D969E2590BB5A0D3268A03AEAE10485BB08E0E9C"
+  },
+  {
+    "path": "client/src/components/ui/button.tsx",
+    "sourceSha256": "2612300E2CEE856B13955515BC2D6BAFBBCBCDE8CB9DEE33CBE516B3934A070E"
+  },
+  {
+    "path": "client/src/components/ui/card.tsx",
+    "sourceSha256": "273D56163B96AF72BE78BF573E2E54F4D16243D0695C052A85F9E5C376091601"
+  },
+  {
+    "path": "client/src/components/ui/input.tsx",
+    "sourceSha256": "62781AD35D8BD17775F11F3C30059987E50065BB8CE29FA4C1867435E51E8B52"
+  },
+  {
+    "path": "client/src/components/ui/label.tsx",
+    "sourceSha256": "ECE819598D95360AF8AEDF36D90BE41A93AF49797240A6D6A69181180B095A76"
+  },
+  {
+    "path": "client/src/components/ui/textarea.tsx",
+    "sourceSha256": "F05DCE17B28F0FC4A10BC54231937F682F459F174D69C918B5540047901DD5DD"
+  },
+  {
+    "path": "client/src/components/ui/skeleton.tsx",
+    "sourceSha256": "90BADF0DCD440128B81554C06D56C4F01B1CCF03748CA3ADF7E4A41D611ACDDD"
+  },
+  {
+    "path": "client/src/components/ui/tabs.tsx",
+    "sourceSha256": "CBCDED04F856AF28223E71674F1CF2C6B4E361A752D4D934F27117B3C990DF96"
+  },
+  {
+    "path": "client/src/components/ui/form.tsx",
+    "sourceSha256": "A80B39038485DFF70CD9A7C2287676D8122A033784E851D958DEE2020FC54EFC"
+  },
+  {
+    "path": "client/src/components/ui/toast.tsx",
+    "sourceSha256": "2DA684420D53B7826485853A5F433BC794EB8A3FA3CA99DB7CABB59974DFFF38"
+  },
+  {
+    "path": "client/src/components/ui/toaster.tsx",
+    "sourceSha256": "D336E69DC56F72DF1DA448F1F39EEDDDB3B7E0DD0E5A69CA5BE8DB7ACB32B7E4"
+  },
+  {
+    "path": "client/src/components/ui/tooltip.tsx",
+    "sourceSha256": "AD62A20F9B4265A885D08C45AC52E5D721BE29F3426E30C700F781F9C7967066"
+  }
+]

@@ -32,3 +32,7 @@ Node.js and blocks when it cannot run. If a skill is blocked with "node: not
 found", tell the user to install Node.js (https://nodejs.org); if it is blocked
 with "Cannot find module ... check-gstack.cjs", the hook file is missing from
 this checkout. Do not work around either block.
+
+## Project rules
+
+Project rules: cf-reasoning-trainer/AGENTS.md (single source).

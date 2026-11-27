@@ -1,0 +1,12 @@
+{
+  "include": ["client/src/**/*", "shared/**/*", "server/**/*", "script/**/*.ts", "tests/**/*.ts", "*.ts"],
+  "exclude": ["node_modules", "dist", ".local", ".test-data"],
+  "compilerOptions": {
+    "target": "ES2022", "module": "ESNext", "moduleResolution": "bundler",
+    "strict": true, "noEmit": true, "skipLibCheck": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"], "jsx": "react-jsx",
+    "esModuleInterop": true, "allowImportingTsExtensions": true,
+    "types": ["node", "vite/client"], "baseUrl": ".",
+    "paths": { "@/*": ["./client/src/*"], "@shared/*": ["./shared/*"] }
+  }
+}
