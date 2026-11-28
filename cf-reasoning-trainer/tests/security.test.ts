@@ -143,7 +143,7 @@ test("database migrations reapply without data loss, enforce constraints, and re
   await runMigrations(fixture.database.pool, fixture.config.DATABASE_ID);
   assert.equal((await browser.request("GET", `/api/notes/${note.data.id}`)).data.body, "Preserve me");
   const migrations = await fixture.database.pool.query("select count(*)::int as count from drizzle.__drizzle_migrations");
-  assert.equal(migrations.rows[0].count, 7);
+  assert.equal(migrations.rows[0].count, 9); // 0007_dataset_import + 0008_dataset_current_sets (Phase 4.5)
   await assert.rejects(runMigrations(fixture.database.pool, randomUUID()), /identity mismatch/);
   await assert.rejects(fixture.database.pool.query("insert into training_notes (user_id,title,body) values (2147483647,'orphan','')"), { code: "23503" });
   await assert.rejects(fixture.database.pool.query("insert into training_notes (user_id,title,body) values ($1,' ','')", [response.data.user.id]), { code: "23514" });

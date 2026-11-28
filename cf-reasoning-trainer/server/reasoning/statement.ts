@@ -8,7 +8,7 @@ export const statementRegistrationSchema = z.object({
   outputSpecification: z.string().min(1).max(60_000), constraints: z.array(z.string().min(1).max(60_000)).min(1).max(128),
   examples: z.array(z.object({ input: z.string().max(60_000), output: z.string().max(60_000), explanation: z.string().min(1).nullable() }).strict()).min(1).max(128),
   sampleComparison: z.enum(["exact-tokens", "unsupported"]),
-  sourceKind: z.enum(["operator-approved", "synthetic-fixture"]), sourceRef: z.string().min(1).max(1000),
+  sourceKind: z.enum(["operator-approved", "synthetic-fixture", "licensed-dataset"]), sourceRef: z.string().min(1).max(1000),
   grantRef: z.string().min(1).max(1000), attribution: z.string().min(1).max(1000),
   approvedAt: z.string().datetime(), processingAllowed: z.literal(true), sharingAllowed: z.boolean(),
   scope: z.enum(["shared", "private"]), ownerId: z.number().int().positive().nullable(),
@@ -16,6 +16,8 @@ export const statementRegistrationSchema = z.object({
   if ((value.scope === "private") !== (value.ownerId !== null)) ctx.addIssue({ code: "custom", message: "scope/owner mismatch" });
   if (value.sharingAllowed && value.scope !== "shared") ctx.addIssue({ code: "custom", message: "private source cannot be shared" });
   if (value.sourceKind === "operator-approved" && /^synthetic|^fixture/i.test(value.grantRef)) ctx.addIssue({ code: "custom", message: "real source needs a real grant reference" });
+  // Dataset statements serve every local account but are never served to a client (design Phase 4.5).
+  if (value.sourceKind === "licensed-dataset" && (value.scope !== "shared" || value.sharingAllowed)) ctx.addIssue({ code: "custom", message: "licensed-dataset statements are shared and never shareable" });
 });
 export type StatementRegistration = z.infer<typeof statementRegistrationSchema>;
 

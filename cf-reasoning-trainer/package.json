@@ -23,7 +23,8 @@
     "reasoning:backfill": "tsx script/reasoning-backfill.ts",
     "reasoning:evaluate": "tsx script/reasoning-evaluate.ts",
     "catalog:sync": "tsx script/catalog-sync.ts",
-    "verify:files": "node script/verify-files.mjs"
+    "verify:files": "node script/verify-files.mjs",
+    "dataset:import": "tsx script/dataset-import.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "3.10.0",

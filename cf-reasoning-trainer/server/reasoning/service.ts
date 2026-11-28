@@ -13,6 +13,7 @@ import { ModelFailure, type ModelAdapter, type ModelCall, type ModelRole } from 
 import { CLASSIFICATION_PROMPT, CLASSIFICATION_VERSION } from "./prompts";
 import { parseMathematics, trainingStageSchema, mathematicsJsonSchema, trainingJsonSchema, unknownTraining } from "./stages";
 import { createKnowledgeService } from "./knowledge";
+import { STATEMENT_WRITE_LOCK } from "./dataset";
 
 const ANALYSIS_SCHEMA = "analysis-candidate/0.2";
 const inputPolicy = "statement-allowlist/0.1";
@@ -25,16 +26,22 @@ export function createReasoningService(db: Database, pool: Pool, config: Config,
   async function registerStatement(raw: unknown) {
     const value = statementRegistrationSchema.parse(raw);
     if (value.sourceKind === "synthetic-fixture" && config.NODE_ENV === "production") throw new Error("Synthetic statements are disabled in production");
+    // Dataset statements come only from `npm run dataset:import`, which enforces precedence and revocation.
+    if (value.sourceKind === "licensed-dataset") throw new Error("licensed-dataset statements are imported only by npm run dataset:import");
     const [problem] = await db.select().from(cfProblems).where(eq(cfProblems.key, value.problemKey));
     if (!problem || !problem.inProblemset || problem.rating === null || problem.rating < 1200 || problem.rating > 2000) throw new Error("Problem is not eligible");
     const content = canonicalStatementContent(value);
     const contentHash = statementHash(value);
     const tentative = buildAnalysisInput("00000000-0000-4000-8000-000000000000", contentHash, content);
     if (!validateStatement(tentative).usable) throw new Error("Statement is incomplete");
-    await db.insert(problemStatements).values({ problemKey: value.problemKey, ownerId: value.ownerId, scope: value.scope,
-      locale: value.locale, sourceKind: value.sourceKind, sourceRef: value.sourceRef, grantRef: value.grantRef,
-      attribution: value.attribution, processingAllowed: true, sharingAllowed: value.sharingAllowed,
-      contentHash, content, approvedAt: new Date(value.approvedAt) }).onConflictDoNothing();
+    await db.transaction(async tx => {
+      // Same lock as the dataset import, so the two never interleave their created_at order.
+      await tx.execute(sql`select pg_advisory_xact_lock(${STATEMENT_WRITE_LOCK})`);
+      await tx.insert(problemStatements).values({ problemKey: value.problemKey, ownerId: value.ownerId, scope: value.scope,
+        locale: value.locale, sourceKind: value.sourceKind, sourceRef: value.sourceRef, grantRef: value.grantRef,
+        attribution: value.attribution, processingAllowed: true, sharingAllowed: value.sharingAllowed,
+        contentHash, content, approvedAt: new Date(value.approvedAt) }).onConflictDoNothing();
+    });
     const [row] = await db.select().from(problemStatements).where(and(eq(problemStatements.problemKey, value.problemKey),
       eq(problemStatements.contentHash, contentHash), eq(problemStatements.grantRef, value.grantRef)));
     if (!row || row.revokedAt) throw new Error("Statement authorization is revoked");
