@@ -44,6 +44,26 @@ The defaults in `.env.example` disable AI and dry-run mode remains on. A future 
 
 `verify:files` checks the distributable source for prohibited artifacts, known credential patterns, placeholder configuration and dependencies on the old project. It intentionally excludes generated local state and is not a comprehensive secret detector. Review the actual staged file list before any future commit. No Git repository/history was copied or initialized during this phase.
 
+## Dataset import (Phase 4.5, operator-only)
+
+Statements and official tests come from the Hugging Face dataset `open-r1/codeforces`, pinned to one revision and imported for personal use. The card lists the license as cc-by-4.0 (header) and ODC-By 4.0 (body); problems remain © Codeforces. Imported statements are `licensed-dataset`, shared by local accounts and never served to clients. Editorials and tags go to a quarantined table that analysis never reads.
+
+```bash
+REV=fbe3f6e903ee854eec2e69e9d96d0306cde59baf
+DIR=.local/datasets/open-r1-codeforces/$REV
+# 1. Download the default config (12 parquet files, ~2.8 GB) into the ignored .local folder.
+mkdir -p $DIR/data && for f in test-00000-of-00001 $(seq -f "train-%05g-of-00011" 0 10); do
+  curl -sSL --fail -o $DIR/data/$f.parquet "https://huggingface.co/datasets/open-r1/codeforces/resolve/$REV/data/$f.parquet"; done
+# 2. Convert to JSONL once (no npm dependency; needs uv). Also writes codeforces.jsonl.manifest.json.
+uv run --no-project --with pyarrow python -I script/dataset-to-jsonl.py $DIR/data $DIR/codeforces.jsonl $REV
+# 3. With the local database running (npm run db:local), import. Rerunning is idempotent.
+npm run dataset:import -- import $DIR/codeforces.jsonl --dataset-ref $REV
+```
+
+The import runs in one transaction and prints a report with a count and the first 20 keys for each skip reason. It refuses to start unless the manifest's revision equals `--dataset-ref`, and rolls back if the row count or sha256 differs from the manifest. A row with wrong field types, null characters, unpaired surrogates, malformed JSON, an oversized line or a revoked problem is skipped with a reason. Revoking any dataset statement for a problem blocks later revisions of it, and a skipped problem loses its current test set. A malformed or zero-byte test suite leaves the problem with no test set (counted as `testsIncomplete`; suites the converter dropped for exceeding 8 MB are counted as `testsOversize`), and out-of-range limits are stored as null. Problems with a checker, interaction or file I/O are recorded as checker-required and get no current test set. Each problem has at most one current test set (`problem_test_sets.is_current`); older sets stay for history.
+
+A problem that already has an operator-approved or fixture statement is skipped (`other_source_present`), so the import never replaces one. `licensed-dataset` statements can only come from this import; `npm run reasoning register` refuses them. On failure the CLI prints only the Postgres error code and constraint name, never row content.
+
 ## Mathematical quality evaluation (operator-only)
 
 Apply migration `0005_mathematical_evaluation`, then use `npm run reasoning:evaluate -- manifest`, `plan`, `create-mock`, and bounded `run-mock <run-id> 50` commands. `export <run-id> .local/report.json` produces metrics; adding `blind` exports review packets. `review <case-id> .local/review.json` records an immutable named assessment. The benchmark contains original fixtures with uncalibrated difficulty, not rated Codeforces problems. Mock completion is not mathematical acceptance.

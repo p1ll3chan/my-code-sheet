@@ -1,5 +1,20 @@
 # Phase Status
 
+## Phase 4.5: Dataset import (2026-11-28)
+
+Status: **import done; trust-tier change and generated tests are next.** Design: `~/.gstack/projects/p1ll3chan-my-code-sheet/p1ll3chan-main-design-20261128-000656.md`.
+
+- Coverage probe (E1/E4) at revision fbe3f6e9: 71 usable problems in the user's 1200 band, below the 100 threshold. Official tests are tiny (median largest test 39 bytes). Per the user's decision, generated tests will be fetched per contest for lookahead problems.
+- Added migration `0007_dataset_import` (`dataset_problems`, `problem_test_sets`, quarantined `problem_editorials`, `dataset_import_runs`). Added `licensed-dataset` to `statementRegistrationSchema` (always shared, never shareable).
+- Added `server/reasoning/dataset.ts` (mapping and transactional import), `script/dataset-import.ts` (`npm run dataset:import`, with `--help`) and `script/dataset-to-jsonl.py` (a one-off converter run through uv).
+- Real import: 10,024 rows read; 3,884 statements, 557 official test sets, 759 checker-required, 108 skipped (72 incomplete, 36 without examples). Band 1200 usable: 68.
+- Fixed during this phase: the CLI dropped the first ~30 rows because readline emitted lines before iteration began. There is now a regression test.
+- Pre-landing review fixes: the import skips problems with an operator-approved or fixture statement (`other_source_present`), since `service.ts` treats the newest shared statement as current. Failure output carries only the SQLSTATE and constraint, never query parameters. Rows with NUL, malformed JSON or a revoked statement are skipped by reason; malformed or zero-byte suites get no test set; out-of-range limits are stored as null. A failed first row no longer blocks a later alias row, and one row imports every catalog problem it maps to. The converter writes atomically, drops tests over 8 MB and writes a manifest that the import checks. `registerStatement` refuses `licensed-dataset`. Migration `0008_dataset_current_sets` adds `problem_test_sets.is_current` (at most one current set per problem) and an indexed `dataset_problems.statement_id`, and backfills both for rows imported under 0007.
+- Second review pass: rows are type-checked with zod and checked for NUL or unpaired surrogates, so a bad row is skipped rather than aborting the run. The manifest sha256 is verified. Revocation is per problem, and any skip retires the problem's current test set and statement link. The import and `registerStatement` share an advisory lock. The converter sizes tests in Arrow before copying them (largest real file: 1.47 GB peak RSS) and counts oversize drops as `testsOversize`. There are new CLI-exit, converter and backfill tests.
+- Checks on Linux: `npm run check`, `npm test` 85/85 (10 dataset tests; the migration-count pin moved 7→9), `npm run verify:files`.
+- To re-run the real import with these fixes: rerun the converter (it now takes the revision and writes the manifest), then `npm run dataset:import`. The local database picks up migration 0008 on the next `npm run db:migrate`.
+- Not done: the trust predicate (`analyzable`/`test-verified`; the E2 characterization table comes first), the on-demand generated-test fetch, the runner, and the lookahead. Imported statements are not yet visible to analysis or coverage. No paid AI and no commit. The real-data numbers above predate the review fixes.
+
 ## Final Phase 4 — Consolidation and Phase 5 Handoff
 
 Status: **LEVEL A READY FOR PHASE 5 DEVELOPMENT; LEVEL B PRODUCTION KNOWLEDGE NOT READY.** Date: 2026-10-16 (Asia/Calcutta). Stop here; Phase 5 has not started.

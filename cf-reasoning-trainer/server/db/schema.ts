@@ -197,6 +197,58 @@ export const problemStatements = pgTable("problem_statements", {
   check("problem_statements_sharing_check", sql`not ${table.sharingAllowed} or ${table.scope} = 'shared'`),
 ]);
 
+// Phase 4.5: metadata imported from the pinned open-r1/codeforces dataset.
+// Statement text lives in problem_statements (source_kind licensed-dataset).
+export const datasetProblems = pgTable("dataset_problems", {
+  problemKey: varchar("problem_key", { length: 128 }).primaryKey().references(() => cfProblems.key),
+  datasetRef: text("dataset_ref").notNull(), datasetId: varchar("dataset_id", { length: 64 }).notNull(),
+  split: varchar("split", { length: 16 }).notNull(),
+  timeLimitMs: integer("time_limit_ms"), memoryLimitMb: integer("memory_limit_mb"),
+  checkerRequired: boolean("checker_required").notNull(),
+  officialTestsComplete: boolean("official_tests_complete").notNull(),
+  generatedTestsCount: integer("generated_tests_count").default(0).notNull(),
+  // The exact statement version this dataset revision maps to (0008).
+  statementId: uuid("statement_id").references(() => problemStatements.id),
+  importedAt: timestamp("imported_at", { withTimezone: true }).defaultNow().notNull(),
+}, table => [
+  check("dataset_problems_split_check", sql`${table.split} in ('train', 'test')`),
+  check("dataset_problems_generated_nonnegative", sql`${table.generatedTestsCount} >= 0`),
+  index("dataset_problems_statement_id_idx").on(table.statementId),
+]);
+
+// Test inputs/outputs used only by the sandboxed runner, never by analysis prompts.
+export const problemTestSets = pgTable("problem_test_sets", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  problemKey: varchar("problem_key", { length: 128 }).notNull().references(() => cfProblems.key),
+  datasetRef: text("dataset_ref").notNull(), source: varchar("source", { length: 32 }).notNull(),
+  complete: boolean("complete").notNull(), testCount: integer("test_count").notNull(),
+  totalBytes: integer("total_bytes").notNull(), testsHash: varchar("tests_hash", { length: 64 }).notNull(),
+  tests: jsonb("tests").notNull(),
+  // Only the current set may be judged against; older or superseded sets stay for history (0008).
+  isCurrent: boolean("is_current").default(false).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, table => [
+  uniqueIndex("problem_test_sets_version_idx").on(table.problemKey, table.testsHash),
+  uniqueIndex("problem_test_sets_current_idx").on(table.problemKey).where(sql`${table.isCurrent}`),
+  check("problem_test_sets_source_check", sql`${table.source} in ('official', 'official+generated-sample')`),
+  check("problem_test_sets_count_positive", sql`${table.testCount} > 0`),
+  check("problem_test_sets_size_cap", sql`${table.totalBytes} between 1 and 8388608`),
+]);
+
+// Quarantined: readable only by the evaluation module and the post-attempt
+// debrief route (CEO-1). Never an analysis input (AGENTS.md).
+export const problemEditorials = pgTable("problem_editorials", {
+  problemKey: varchar("problem_key", { length: 128 }).primaryKey().references(() => cfProblems.key),
+  datasetRef: text("dataset_ref").notNull(), editorial: text("editorial"), tags: jsonb("tags").notNull(),
+  importedAt: timestamp("imported_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const datasetImportRuns = pgTable("dataset_import_runs", {
+  id: uuid("id").primaryKey().defaultRandom(), datasetRef: text("dataset_ref").notNull(),
+  startedAt: timestamp("started_at", { withTimezone: true }).notNull(),
+  finishedAt: timestamp("finished_at", { withTimezone: true }).notNull(), report: jsonb("report").notNull(),
+});
+
 export const analysisBatches = pgTable("analysis_batches", {
   id: uuid("id").primaryKey().defaultRandom(), planHash: varchar("plan_hash", { length: 64 }).notNull().unique(),
   mode: varchar("mode", { length: 8 }).notNull(), status: varchar("status", { length: 24 }).default("queued").notNull(),
